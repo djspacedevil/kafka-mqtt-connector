@@ -127,7 +127,7 @@ namespace kb{
             m_useTraceContext=p_flag;
         }
         
-        void MqttConnector::SetProducer(std::shared_ptr<kafka::clients::KafkaProducer> p_producer)
+        void MqttConnector::SetProducer(std::shared_ptr<kafka::clients::producer::KafkaProducer> p_producer)
         {
             m_producer = p_producer;
         }
@@ -189,7 +189,7 @@ namespace kb{
                     }
                 },
                 // The memory block given by record.value() would be copied
-                kafka::clients::KafkaProducer::SendOption::ToCopyRecordValue);
+                kafka::clients::producer::KafkaProducer::SendOption::ToCopyRecordValue);
         }
 
         MqttConnector::MqttConnector(const char *id, bool clean_session):mosqpp::mosquittopp(id,clean_session)
