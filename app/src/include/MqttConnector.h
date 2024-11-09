@@ -29,7 +29,7 @@ class MqttConnector : public mosqpp::mosquittopp{
 public:
     static MqttConnector * GetInstance(const char *id=NULL, bool clean_session=true);
     std::string GetCurrentISO8601TimeUTC();
-    void SetProducer(std::shared_ptr<::kafka::clients::KafkaProducer> p_producer);
+    void SetProducer(std::shared_ptr<::kafka::clients::producer::KafkaProducer> p_producer);
     void SetQos(std::uint8_t p_qos);
     void SetTopicsToSubscribeTo(const std::multimap<std::string,std::string>& p_topics);
     void SetTraceContextFlag(bool p_flag);
@@ -50,7 +50,7 @@ private:
     void UnsubscribeToTopics();
     void SendToKafka(const std::string & p_topic,const std::string& p_header, const std::string p_message);
     MqttConnector(const char *id, bool clean_session);
-    std::shared_ptr<::kafka::clients::KafkaProducer> m_producer;
+    std::shared_ptr<::kafka::clients::producer::KafkaProducer> m_producer;
     std::uint8_t m_qos{0};
     std::multimap<std::string,std::string> m_topics;
     bool m_useTraceContext;
