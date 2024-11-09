@@ -22,7 +22,7 @@ namespace kb{
         public:
             KafkaConnectorBuilder();
             ~KafkaConnectorBuilder();
-            std::shared_ptr<::kafka::clients::KafkaProducer> BuildProducer();
+            std::shared_ptr<::kafka::clients::producer::KafkaProducer> BuildProducer();
             std::shared_ptr<std::vector<std::thread>> BuildConsumerThreads();
             void TopicsToSubscribeTo(const std::multimap<std::string,std::string>& p_topicsToSubscribeTo);
         private:
@@ -30,7 +30,7 @@ namespace kb{
             void PrintDebugMessage(const ::kafka::clients::consumer::ConsumerRecord & p_record, const std::string& p_payload);
             ::kafka::Properties m_propertiesProducer;
             ::kafka::Properties m_propertiesConsumer;
-            std::shared_ptr<::kafka::clients::KafkaProducer> m_producer{nullptr};
+            std::shared_ptr<::kafka::clients::producer::KafkaProducer> m_producer{nullptr};
             std::shared_ptr<std::vector<std::thread>> m_consumerThreads;
             std::multimap<std::string,std::string> m_topicsToSubscribeTo;
             std::string m_clientId;
