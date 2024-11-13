@@ -2,6 +2,8 @@
 
 namespace kb{
     namespace kafka{
+        ::kafka::Properties m_propertiesProducer;
+        ::kafka::Properties m_propertiesConsumer;
 
         KafkaConnectorBuilder::KafkaConnectorBuilder()
         {
@@ -19,16 +21,20 @@ namespace kb{
             // "acks"
 
             // Create configuration object
+            //::kafka::Properties test = ::kafka::Properties();
+            //test.put("bootstrap.servers",  ss.str());
 
-            ::kafka::Properties m_propertiesProducer;
-            m_propertiesProducer.put("bootstrap.servers",  ss.str());
-            m_propertiesProducer.put("enable.idempotence", "true");
-            m_propertiesProducer.put("client.id",kafkaClientId);
+            m_propertiesProducer = ::kafka::Properties({{"bootstrap.servers",  {ss.str()}},
+                                                {"enable.idempotence", {"true" }},
+                                                {"client.id",          {kafkaClientId}}});
 
-            ::kafka::Properties m_propertiesConsumer;
-            m_propertiesConsumer.put("bootstrap.servers",  ss.str());
-            m_propertiesConsumer.put("enable.auto.commit", "true");
-            m_propertiesConsumer.put("client.id",kafkaClientId);
+            m_propertiesConsumer = ::kafka::Properties({{"bootstrap.servers",  {ss.str()}},
+                                                {"enable.auto.commit", {"true" }},
+                                                {"client.id",          {kafkaClientId}}});
+            #ifdef DEBUG
+                std::cout << "Properties Producer: " << this->m_propertiesProducer.toString() << std::endl;
+                std::cout << "Properties Consumer: " << this->m_propertiesConsumer.toString() << std::endl;
+            #endif
 
             m_useTraceContext = static_cast<bool>(atoi(FetchEnvVariable("USE_TRACE_CONTEXT").c_str()));
         }
@@ -54,7 +60,7 @@ namespace kb{
         {
             if(m_producer==nullptr)
             {
-                m_producer = std::shared_ptr<::kafka::clients::producer::KafkaProducer>{ new ::kafka::clients::producer::KafkaProducer(m_propertiesProducer)};
+                m_producer = std::shared_ptr<::kafka::clients::producer::KafkaProducer>{ new ::kafka::clients::producer::KafkaProducer(this->m_propertiesProducer)};
             }
             return m_producer;
         }
@@ -132,7 +138,6 @@ namespace kb{
                         exit(EXIT_FAILURE);
                     }
                     };
-
                     m_consumerThreads->push_back(std::thread(function,this->m_propertiesConsumer,pair, &this->m_threadFlag));
                 }
             }
