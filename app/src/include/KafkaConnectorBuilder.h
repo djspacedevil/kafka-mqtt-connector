@@ -6,6 +6,7 @@
 #include <kafka/KafkaProducer.h>
 #include <kafka/KafkaConsumer.h>
 #include <kafka/Header.h>
+#include <struct_mapping/struct_mapping.h>
 
 #include <MqttConnector.h>
 #include <IFetchEnvironment.h>

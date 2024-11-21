@@ -5,6 +5,11 @@ namespace kb{
         ::kafka::Properties m_propertiesProducer;
         ::kafka::Properties m_propertiesConsumer;
 
+        struct stockTopicKey {
+            std::string country;
+            std::string articlenumber;
+        };
+
         KafkaConnectorBuilder::KafkaConnectorBuilder()
         {
             // certificates ?
@@ -91,6 +96,9 @@ namespace kb{
 
         std::shared_ptr<std::vector<std::thread>> KafkaConnectorBuilder::BuildConsumerThreads()
         {
+            struct_mapping::reg(&stockTopicKey::country, "country");
+	        struct_mapping::reg(&stockTopicKey::articlenumber, "articlenumber");
+
             if(m_consumerThreads==nullptr)
             {
 
@@ -127,7 +135,21 @@ namespace kb{
                                     {
                                         payload = AddTraceContext(record.headers(),payload);
                                     }
-                                    mqtt->publish(0,pair.first.c_str(),payload.size(),(void *)payload.c_str());
+
+                                    stockTopicKey topicKey;
+                                    std::istringstream json_record_key(record.key().toString());
+                                    struct_mapping::map_json_to_struct(topicKey, json_record_key);
+
+                                    std::string stockTopic = pair.first + "/" + topicKey.country + "/" + topicKey.articlenumber;
+#ifdef DEBUG
+                                    std::cout << "% Send MQTT Stockdata to : " << stockTopic << std::endl;
+#endif
+                                    if (!stockTopic.empty()) {
+                                        mqtt->publish(0,stockTopic.c_str(),payload.size(),(void *)payload.c_str());
+                                    } else {
+                                        mqtt->publish(0,pair.first.c_str(),payload.size(),(void *)payload.c_str());
+                                    }
+
                                 } else {
                                     std::cerr << record.toString() << std::endl;
                                 }

@@ -13,9 +13,10 @@ RUN mkdir /services && chown -R app_user /services && chmod 777 /services
 ADD . /services
 WORKDIR /services
 
-# install modern cpp kafka
+# install modern cpp kafka --branch=v2023.01.05
 RUN git clone --depth=1 https://github.com/morganstanley/modern-cpp-kafka.git
 WORKDIR ./modern-cpp-kafka
+COPY --from=include . /services/src/include
 RUN sed -i "s/\${LIBRDKAFKA_LIBRARY_DIR}\/librdkafka.a/\/usr\/lib\/x86_64-linux-gnu\/librdkafka.so/g" CMakeLists.txt
 RUN mkdir ./build
 WORKDIR ./build 
@@ -41,37 +42,38 @@ ENV MQTT_PORT=1883
 ENV MQTT_CLIENT_ID=mqtt-client-1
 ENV MQTT_QOS=0
 ENV MQTT_TLS_AUTHENTICATION=0
-ENV MQTT_USER_AUTHENTICATION=0
-ENV MQTT_CERT_PATH="/services/res/client.crt"
-ENV MQTT_KEY_PATH="/services/res/client.key"
-ENV MQTT_CA_PATH="/services/res/ca.crt"
-ENV MQTT_CA_DIR_PATH="/services/res"
-ENV MQTT_TLS_PSW=""
-ENV MQTT_USER=""
+ENV MQTT_USER_AUTHENTICATION=1
+#ENV MQTT_CERT_PATH="/services/res/client.crt"
+#ENV MQTT_KEY_PATH="/services/res/client.key"
+#ENV MQTT_CA_PATH="/services/res/ca.crt"
+#ENV MQTT_CA_DIR_PATH="/services/res"
+ENV MQTT_TLS_PSW="test"
+ENV MQTT_USER="test"
 ENV MQTT_INSECURE=1
 
 # currently not implemented
-ENV MQTT_PASSWORD=""
+ENV MQTT_PASSWORD="test-password"
 
-ENV KAFKA_HOST=kafka
+ENV KAFKA_HOST=host.docker.internal
 ENV KAFKA_PORT=9092
 ENV KAFKA_CLIENT_ID=testing-kafka-client
-ENV KAFKA_TLS=1
-ENV KAFKA_CERT_PATH="/services/res/client.crt"
-ENV KAFKA_KEY_PATH="/services/res/client.key"
-ENV KAFKA_CA_PATH="/services/res/ca.crt"
+ENV KAFKA_TLS=0
+#ENV KAFKA_CERT_PATH="/services/res/client.crt"
+#ENV KAFKA_KEY_PATH="/services/res/client.key"
+#ENV KAFKA_CA_PATH="/services/res/ca.crt"
 
 ENV USE_TRACE_CONTEXT=1
 # Tracing ID to KAFKA TOPIC and VICE VERSA
 
-ENV TOPIC_MAPPING=test1-mqtt>>test1-kafka;test2-mqtt<<test2-kafka
+ENV TOPIC_MAPPING=stocks<<stocks;stockdata<<stockdata
 
 WORKDIR /services/src
 RUN if [ ! -d ./build ]; then mkdir ./build; fi
-WORKDIR /services/src/build
+WORKDIR /services/src/build/
 # RUN rm -r ./*
 RUN ls -l
 RUN cmake ..
 RUN cmake --build ./ -j
 
-CMD ./kafka-mqtt-connector
+WORKDIR /services/src/build/
+ENTRYPOINT ["/bin/bash", "-c", "/services/src/build/kafka-mqtt-connector"]
